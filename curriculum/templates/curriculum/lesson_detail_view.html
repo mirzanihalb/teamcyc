@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %} {{lessons.name}} {% endblock %}
+
+{% block image_block %}
+
+{% endblock %}
+
+{% block content %}
+
+<section class="text-center">
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+  <hr></hr>
+    <h2 class="mb-0 mt-5 font-weight-bold" style="color:#ff5722;"></h2>
+    <div class="row d-flex justify-content-center mb-3">
+      <blockquote class="blockquote mt-0">
+        <footer class="blockquote-footer">{{lessons.created_at}} by <cite title="Source Title">{{lessons.created_by}}</cite></footer>
+        </blockquote>
+    </div>
+    <!-- video -->
+    <div class="row d-flex justify-content-center mb-3">
+      <div class="vidwrapper" style="width:100%; max-width:800px;margin:3em auto;border:5px solid black;">
+        <div class = "vidcontainer" style="width:100%; max-width:100%; height:0;padding-bottom:56.25%;border:5px solid blue;position:relative;">
+          <iframe style="width:100%;max-width:100%;height:100%;position:absolute;top:0;left:0" src={{lessons.video}} title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          
+        </div>
+      </div>
+      {% comment %} <div id="player-overlay">
+            <video controls>
+                <source src="{{lessons.video.url}}"  type="video/mp4">
+              </video>
+            
+      </div> {% endcomment %}
+    </div>
+    <!-- download cards -->
+    <div class="row d-flex justify-content-center mb-3 mt-3">
+      <!-- download presentations -->
+                
+      <!-- download notes -->
+                <div class="col-md-4 mb-4 mt-4">
+                  <div class="card box-shadow-hover">
+                    <div class="card-body">
+                      <h5 class="card-title">Download Notes</h5>
+                      {% if lessons.Notes %}
+                      <p class="card-text">Download notes from the lecture</p>
+                      <a href="{{lessons.Notes.url}}" download>
+                      <button type="button" class="button-les"><span>Get Files</span></button>
+                      </a>
+                      {% else %}
+                      <p class="card-text">Notes not available</p>
+                      {%endif%}
+
+                    </div>
+                  </div>
+                </div>
+      <!-- download video -->
+                
+    </div>
+    <!-- update and delete button -->
+    <div class="row d-flex justify-content-center mb-3 mt-3">
+        {% if request.user.user_profile.user_type == 'teacher'  or user.is_superuser %}
+        <div class="col-md-6 mb-3 text-center">
+            <a href="{% url 'curriculum:lesson_update' standard=lessons.Standard.slug subject=lessons.subject.slug slug=lessons.slug %}" class="btn btn-dark btn-lg mr-4 btn-block">Update Lesson</a>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'curriculum:lesson_delete' standard=lessons.Standard.slug subject=lessons.subject.slug slug=lessons.slug %}" class="btn btn-dark btn-lg mr-4 btn-block"> Delete Lesson </a>
+        </div>
+        {% endif %}
+      </div>
+</section>
+
+<hr class="my-5" style="color:#18191a;">
+
+<!-- Comments section -->
+<section >
+    <h2 class="mb-4 mt-5 font-weight-bold" style="color:#18191a;"> Anonymous Question Box </h2>
+    <h4 class="mt-2 font-weight-bold" style="color:#18191a;">Post your question below no one will know your identity!!!</h4>
+    <br><br>
+    <div class="container row">
+      <div class="col-md-6">
+                              <form method="post">
+                                    <div class="form-group">
+                                    {% csrf_token %}
+                                    {{form|crispy}}
+                                    <input type="submit" name="form" value="Add Comment" class="btn btn-dark btn-sm">
+                                    </div>
+                              </form>
+
+      </div>
+    </div>
+    <div class="row">
+      {% for comment in lessons.comments.all %}
+      <div class="col-md-8 mt-2 mb-2">
+                      <div class="media border p-3">
+                          <img src="{% static 'Images/user_default.png' %}" alt="user" class="mr-3 mt-3 rounded-circle" style="width:60px;">
+                          <div class="media-body">
+                                    {% comment %} side of h4 {{comment.author}} {% endcomment %}
+                                    <h4> <small><i>Posted on {{comment.date_added}}</i></small></h4>
+                                    <p>{{comment.body}}</p>
+                            {% for reply in comment.replies.all %}
+                                        <div class="media p-3">
+                                                <img src="{% static 'Images/user_avatar.png' %}" alt="Jane Doe" class="mr-3 mt-3 rounded-circle" style="width:45px;">
+                                        <div class="media-body">
+                                                {% comment %} side of h5 {{reply.author}} {% endcomment %}
+                                                <h5> <small><i>Posted on {{reply.date_added}}</i></small></h5>
+                                                <p>{{reply.reply_body}}</p>
+                                          </div>
+                                        </div>
+                            {% endfor %}
+                            <!-- form to post reply -->
+                            <form method="post">
+                                  <input type="hidden" name="comment.id" value="{{comment.id}}">
+                                  <input type="hidden" name="comment.comm_name" value="{{comment.comm_name}}">
+                                  {% csrf_token %}
+                                  {{form2.as_p}}
+                                  <input type="submit" name="form2" value="Add Reply" class="btn btn-dark btn-sm">
+                            </form>
+                          </div>
+                  </div>
+      </div>
+      {% endfor %}
+    </div>
+
+
+</section>
+
+{%endblock%}
